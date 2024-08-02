@@ -1,0 +1,88 @@
+
+?start: block
+
+block: (stmt)* (return_stmt)?
+
+?stmt: func_call
+     | if_stmt
+     | func_decl
+     | local_func_decl
+     | var_decl
+
+if_stmt: "if" expr "then" block "end"
+
+func_decl: "function" func_name func_body
+local_func_decl: "local" "function" NAME func_body
+
+var_decl: "local" NAME "=" expr
+
+return_stmt: "return" (expr_list)?
+
+func_name: NAME ("." NAME)* (":" NAME)?
+
+var_list: var ("," var)*
+
+var: NAME
+   | prefix_expr "[" exp "]" -> index_expr
+   | prefix_expr "." NAME -> prop_expr
+
+name_list: NAME ("," NAME)*
+
+expr_list: expr ("," expr)*
+
+prefix_expr: var
+           | func_call
+           | "(" expr ")"
+
+?func_call: prefix_expr args
+          | prefix_expr ":" NAME args -> method_call
+
+args: "(" (expr_list)? ")"
+    | table
+    | STRING
+
+function: "function" funcbody
+
+func_body: "(" param_list? ")" block "end"
+param_list: NAME ("," NAME)*
+
+table: "{" field_list? "}"
+
+field_list: field (field_sep field)* field_sep?
+
+field: "[" expr "]" "=" expr -> tbl_field
+     | NAME "=" expr -> obj_field
+     | expr
+
+field_sep: "," | ";"
+
+?or_expr: or_expr "or" and_expr | and_expr
+?and_expr: and_expr "and" eq_expr | eq_expr
+?eq_expr: eq_expr EQ_OP rel_expr | rel_expr
+?rel_expr: rel_expr REL_OP add_expr | add_expr
+?add_expr: add_expr ADD_OP mul_expr | mul_expr
+?mul_expr: mul_expr MUL_OP pow_expr | pow_expr
+?pow_expr: pow_expr POW_OP | unary_expr
+?unary_expr: UNARY_OP unary_expr | atom
+
+?atom: prefix_expr
+     | NUMBER
+     | STRING
+
+EQ_OP: "==" | "~="
+REL_OP: "<" | ">" | "<=" | ">="
+ADD_OP: "+" | "-" | ".."
+MUL_OP: "*" | "/" | "%"
+POW_OP: "^"
+
+UNARY_OP: "-" | "not" | "#"
+
+NAME: /[a-zA-Z_][a-zA-Z0-9_]*/
+NUMBER: /\d+(\.\d*)?([eE][+-]?\d+)?/
+STRING: /"(?:[^"\]|\.)*"/ | /'(?:[^'\]|\.)*'/
+
+COMMENT: "--" /[^\n]/*
+
+%import common.WS
+%ignore WS
+%ignore COMMENT
