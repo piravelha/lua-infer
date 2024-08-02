@@ -155,3 +155,4 @@ class RecursiveType:
   def __init__(self, name: str, body: Type):
     self.name = name
     self.body = body
+
