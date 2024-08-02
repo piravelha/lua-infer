@@ -1,5 +1,11 @@
 from typing import TypeAlias, Union
 
+Tree: TypeAlias = Union[
+  'Expr',
+  'Stmt',
+  'Block',
+]
+
 Expr: TypeAlias = Union[
   'StringLiteral',
   'NumberLiteral',
@@ -9,16 +15,15 @@ Expr: TypeAlias = Union[
   'Table',
   'FuncExpr',
   'FuncCall',
-  'MethodCall',
-  'IndexExpr',
-  'PropExpr',
+  #'IndexExpr',
+  #'PropExpr',
 ]
 
 Stmt: TypeAlias = Union[
   'FuncCall',
-  'IfStmt',
-  'LocalFuncDecl',
-  'FuncDecl',
+  #'IfStmt',
+  #'LocalFuncDecl',
+  #'FuncDecl',
   'VarDecl',
 ]
 
@@ -63,7 +68,7 @@ class Table:
 
 class FuncExpr:
   __match_args__ = ("params", "body")
-  def __init__(self, params: list[Name], body: Block):
+  def __init__(self, params: list[str], body: Block):
     self.params = params
     self.body = body
 
@@ -88,7 +93,7 @@ class IndexExpr:
 
 class PropExpr:
   __match_args__ = ("obj", "prop")
-  def __init__(self, obj: Expr, prop: Name):
+  def __init__(self, obj: Expr, prop: str):
     self.obj = obj
     self.prop = prop
 
@@ -100,21 +105,21 @@ class IfStmt:
 
 class LocalFuncDecl:
   __match_args__ = ("name", "params", "body")
-  def __init__(self, name: Name, params: list[Name], body: Block):
+  def __init__(self, name: str, params: list[str], body: Block):
     self.name = name
     self.params = params
     self.body = body
 
 class FuncDecl:
   __match_args__ = ("name", "params", "body")
-  def __init__(self, name: Name, params: list[Name], body: Block):
+  def __init__(self, name: str, params: list[str], body: Block):
     self.name = name
     self.params = params
     self.body = body
 
 class VarDecl:
   __match_args__ = ("name", "value")
-  def __init__(self, name: Name, value: Expr):
+  def __init__(self, name: str, value: Expr):
     self.name = name
     self.value = value
 
@@ -133,26 +138,37 @@ class TypeVar:
       TypeVar.iota += 1
       name = f"t{TypeVar.iota}"
     self.name = name
+  def __repr__(self):
+    return self.name
 
 class PrimitiveType:
   __match_args__ = ("name",)
   def __init__(self, name: str):
     self.name = name
+  def __repr__(self):
+    return self.name
 
 class FuncType:
   __match_args__ = ("params", "ret")
   def __init__(self, params: list[Type], ret: Type):
     self.params = params
     self.ret = ret
+  def __repr__(self):
+    ps = ", ".join(str(p) for p in self.params)
+    return f"({ps}) -> {self.ret}"
 
 class TableType:
   __match_args__ = ("fields",)
   def __init__(self, fields: dict[str, Type]):
     self.fields = fields
+  def __repr__(self):
+    fields = ", ".join(f"{k}: {v}" for k, v in self.fields.items())
+    return f"{{{fields}}}"
 
 class RecursiveType:
   __match_args__ = ("name", "body")
   def __init__(self, name: str, body: Type):
     self.name = name
     self.body = body
-
+  def __repr__(self):
+    return f"rec {self.name}. {self.body}"
